@@ -2,7 +2,6 @@
 
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
-import { RS, m3, GROUP_PLAYER, PART_DEFS } from './config.js';
 
 // Создание материалов для робота
 export function makeMaterials(baseColor, eyeColor) {
