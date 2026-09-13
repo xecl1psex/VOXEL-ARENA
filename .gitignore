@@ -1,1 +1,46 @@
-Nothing needs to be added to .gitignore since only JavaScript source files (.js) were modified and no build artifacts, dependencies, or temporary files were detected in the changes.
+```
+# Dependencies
+node_modules/
+
+# Build artifacts
+dist/
+build/
+target/
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.local
+*.env.*
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Coverage reports
+coverage/
+htmlcov/
+.coverage
+
+# Distribution / packaging
+*.tar
+*.tar.gz
+*.tar.xz
+*.zip
+*.7z
+
+# OS generated files
+.DS_Store
+Thumbs.db
+```
