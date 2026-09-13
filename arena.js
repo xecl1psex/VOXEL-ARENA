@@ -2,8 +2,8 @@
 
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
-import { GROUP_GROUND, GROUP_PLAYER, GROUP_LIMB, ARENA_SIZE, SAFE_RADIUS, CORPSE_LIFETIME, SEVERED_LIFETIME } from './config.js';
-import { audio } from './audio.js';
+import { GROUP_GROUND, GROUP_PLAYER, GROUP_LIMB, ARENA_SIZE, SAFE_RADIUS, CORPSE_LIFETIME, SEVERED_LIFETIME } from './robots.js';
+import { audio } from './main.js';
 
 let scene, world;
 let currentFloorMesh = null, currentFloorBody = null, currentGrid = null;
