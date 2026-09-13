@@ -2,7 +2,7 @@
 
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
-import { RS, m3, GROUP_GROUND, GROUP_PLAYER, GROUP_LIMB, DIFFICULTIES, customization, loadCustomization, saveCustomization } from './config.js';
+import { RS, m3, GROUP_GROUND, GROUP_PLAYER, GROUP_LIMB, DIFFICULTIES, customization, loadCustomization, saveCustomization } from './robots.js';
 import { audio } from './audio.js';
 import { initArena, buildArena, clearArena } from './arena.js';
 import { createRobot as createRobotFromModule } from './robots.js';
