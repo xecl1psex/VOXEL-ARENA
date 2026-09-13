@@ -2,7 +2,25 @@
 
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
-import { RS, m3, GROUP_GROUND, GROUP_PLAYER, GROUP_LIMB, DIFFICULTIES, customization, loadCustomization, saveCustomization, WEAPONS, ENEMY_TYPES, BOSSES, PASSIVES, REWARDS, CORPSE_LIFETIME, updateHpBarSprite } from './robots.js';
+import {
+    RS,
+    m3,
+    GROUP_GROUND,
+    GROUP_PLAYER,
+    GROUP_LIMB,
+    DIFFICULTIES,
+    customization,
+    loadCustomization,
+    saveCustomization,
+    WEAPONS,
+    ENEMY_TYPES,
+    BOSSES,
+    PASSIVES,
+    REWARDS,
+    CORPSE_LIFETIME,
+    SAFE_RADIUS,
+    updateHpBarSprite
+} from './robots.js';
 import { audio } from './audio.js';
 import { initArena, buildArena, clearArena } from './arena.js';
 import { createRobot as createRobotFromModule } from './robots.js';
@@ -10,7 +28,11 @@ import { createRobot as createRobotFromModule } from './robots.js';
 // Глобальные переменные игры
 export let scene, camera, renderer, world;
 export let player = null;
-export let robots = [], enemies = [], allies = [], severedLimbs = [], arrows = [];
+export let robots = [],
+    enemies = [],
+    allies = [],
+    severedLimbs = [],
+    arrows = [];
 export let corpses = [];
 export let currentDifficultyKey = 'normal';
 export let gameRunning = false;
@@ -44,7 +66,14 @@ function initScene() {
     sunLight.position.set(40, 55, 25);
     sunLight.castShadow = true;
     sunLight.shadow.mapSize.set(2048, 2048);
-    Object.assign(sunLight.shadow.camera, { left: -160, right: 160, top: 160, bottom: -160, near: 1, far: 400 });
+    Object.assign(sunLight.shadow.camera, {
+        left: -160,
+        right: 160,
+        top: 160,
+        bottom: -160,
+        near: 1,
+        far: 400
+    });
     sunLight.shadow.bias = -0.0005;
     scene.add(sunLight);
 }
@@ -59,10 +88,30 @@ function initPhysics() {
     window.bodyMat = new CANNON.Material('body');
     window.limbMat = new CANNON.Material('limb');
 
-    world.addContactMaterial(new CANNON.ContactMaterial(window.groundMat, window.bodyMat, { friction: 0, restitution: 0 }));
-    world.addContactMaterial(new CANNON.ContactMaterial(window.groundMat, window.limbMat, { friction: 0.6, restitution: 0.25 }));
-    world.addContactMaterial(new CANNON.ContactMaterial(window.bodyMat, window.limbMat, { friction: 0.4, restitution: 0.1 }));
-    world.addContactMaterial(new CANNON.ContactMaterial(window.limbMat, window.limbMat, { friction: 0.4, restitution: 0.1 }));
+    world.addContactMaterial(
+        new CANNON.ContactMaterial(window.groundMat, window.bodyMat, {
+            friction: 0,
+            restitution: 0
+        })
+    );
+    world.addContactMaterial(
+        new CANNON.ContactMaterial(window.groundMat, window.limbMat, {
+            friction: 0.6,
+            restitution: 0.25
+        })
+    );
+    world.addContactMaterial(
+        new CANNON.ContactMaterial(window.bodyMat, window.limbMat, {
+            friction: 0.4,
+            restitution: 0.1
+        })
+    );
+    world.addContactMaterial(
+        new CANNON.ContactMaterial(window.limbMat, window.limbMat, {
+            friction: 0.4,
+            restitution: 0.1
+        })
+    );
     world.defaultContactMaterial.friction = 0.4;
 
     initArena(scene, world);
@@ -100,14 +149,14 @@ function animate(time) {
 
 // Глобальные переменные для ввода
 const keys = {};
-let cameraAngle = Math.PI / 4;
-let cameraHeight = 8;
-let cameraDistance = 12;
+const cameraAngle = Math.PI / 4;
+const cameraHeight = 8;
+const cameraDistance = 12;
 
 // Обновление игровой логики
 function updateGame(dt) {
     if (!player || !player.alive) return;
-    
+
     handleInput(dt);
     updateCamera();
     updateRobots(dt);
@@ -118,17 +167,17 @@ function updateGame(dt) {
 
 function handleInput(dt) {
     if (!player || !player.alive || paused) return;
-    
+
     const moveSpeed = 5 * (1 + (player.speedBonus || 0));
     const direction = new THREE.Vector3();
     const forward = new THREE.Vector3(-Math.sin(cameraAngle), 0, -Math.cos(cameraAngle));
     const right = new THREE.Vector3(Math.cos(cameraAngle), 0, -Math.sin(cameraAngle));
-    
+
     if (keys['KeyW'] || keys['ArrowUp']) direction.add(forward);
     if (keys['KeyS'] || keys['ArrowDown']) direction.sub(forward);
     if (keys['KeyA'] || keys['ArrowLeft']) direction.sub(right);
     if (keys['KeyD'] || keys['ArrowRight']) direction.add(right);
-    
+
     if (direction.length() > 0) {
         direction.normalize();
         player.coreBody.velocity.x = direction.x * moveSpeed;
@@ -143,21 +192,21 @@ function handleInput(dt) {
         player.coreBody.velocity.x = 0;
         player.coreBody.velocity.z = 0;
     }
-    
+
     if ((keys['Space'] || keys['KeyE']) && Math.abs(player.coreBody.velocity.y) < 0.1) {
         player.coreBody.velocity.y = 6 + (player.jumpBonus || 0);
         audio.thud(200, 0.1, 0.3);
     }
-    
+
     if (keys['MouseLeft'] && player.attackCooldown <= 0) {
         performAttack(player);
     }
-    
+
     if (keys['Digit1']) equipWeapon(player, 'sword');
     if (keys['Digit2']) equipWeapon(player, 'axe');
     if (keys['Digit3']) equipWeapon(player, 'bow');
     if (keys['Digit4']) equipWeapon(player, 'spear');
-    
+
     if (player.attackCooldown > 0) player.attackCooldown -= dt;
 }
 
@@ -169,7 +218,11 @@ function updateCamera() {
     camera.position.x += (targetX - camera.position.x) * 0.1;
     camera.position.z += (targetZ - camera.position.z) * 0.1;
     camera.position.y += (targetY - camera.position.y) * 0.1;
-    camera.lookAt(player.coreBody.position.x, player.coreBody.position.y + 1, player.coreBody.position.z);
+    camera.lookAt(
+        player.coreBody.position.x,
+        player.coreBody.position.y + 1,
+        player.coreBody.position.z
+    );
 }
 
 function updateRobots(dt) {
@@ -178,7 +231,11 @@ function updateRobots(dt) {
         robot.group.position.copy(robot.coreBody.position);
         robot.group.quaternion.copy(robot.coreBody.quaternion);
         if (robot.hpBar) {
-            robot.hpBar.position.set(robot.coreBody.position.x, robot.coreBody.position.y + 2.5, robot.coreBody.position.z);
+            robot.hpBar.position.set(
+                robot.coreBody.position.x,
+                robot.coreBody.position.y + 2.5,
+                robot.coreBody.position.z
+            );
             robot.hpBar.lookAt(camera.position);
             updateHpBarSprite(robot.hpBar, robot.torsoHP, robot.maxTorsoHP);
         }
@@ -202,7 +259,9 @@ function updateEnemyAI(enemy, dt) {
     const dist = enemy.coreBody.position.distanceTo(player.coreBody.position);
     const speed = (enemy.enemyType?.speed || 2) * enemy.scale;
     if (dist > 2.5) {
-        const dir = new THREE.Vector3().subVectors(player.coreBody.position, enemy.coreBody.position).normalize();
+        const dir = new THREE.Vector3()
+            .subVectors(player.coreBody.position, enemy.coreBody.position)
+            .normalize();
         enemy.coreBody.velocity.x = dir.x * speed;
         enemy.coreBody.velocity.z = dir.z * speed;
         enemy.facing = Math.atan2(dir.x, dir.z);
@@ -223,7 +282,8 @@ function updateProjectiles(dt) {
         }
         arrow.body.position.vadd(arrow.body.velocity.scale(dt), arrow.body.position);
         for (const robot of robots) {
-            if (!robot.alive || robot === arrow.owner || robot.isEnemy === arrow.owner.isEnemy) continue;
+            if (!robot.alive || robot === arrow.owner || robot.isEnemy === arrow.owner.isEnemy)
+                continue;
             if (arrow.body.position.distanceTo(robot.coreBody.position) < 1.5) {
                 damageRobot(robot, arrow.damage + (arrow.owner?.bonusDamage || 0), arrow.owner);
                 audio.hit(800, 0.15, 0.4);
@@ -252,11 +312,23 @@ function performAttack(attacker) {
         attacker.swinging = false;
         const range = 3 + (attacker.rangeBonus || 0);
         for (const target of robots) {
-            if (!target.alive || target === attacker || target.isEnemy === attacker.isEnemy || attacker.hitThisSwing.has(target)) continue;
+            if (
+                !target.alive ||
+                target === attacker ||
+                target.isEnemy === attacker.isEnemy ||
+                attacker.hitThisSwing.has(target)
+            )
+                continue;
             const dist = attacker.coreBody.position.distanceTo(target.coreBody.position);
             if (dist > range) continue;
-            const dirToTarget = new THREE.Vector3().subVectors(target.coreBody.position, attacker.coreBody.position).normalize();
-            const attackDir = new THREE.Vector3(-Math.sin(attacker.facing), 0, -Math.cos(attacker.facing));
+            const dirToTarget = new THREE.Vector3()
+                .subVectors(target.coreBody.position, attacker.coreBody.position)
+                .normalize();
+            const attackDir = new THREE.Vector3(
+                -Math.sin(attacker.facing),
+                0,
+                -Math.cos(attacker.facing)
+            );
             if (Math.acos(dirToTarget.dot(attackDir)) > Math.PI / 6) continue;
             attacker.hitThisSwing.add(target);
             damageRobot(target, weapon.damage + (attacker.bonusDamage || 0), attacker);
@@ -268,7 +340,8 @@ function performAttack(attacker) {
 function damageRobot(target, damage, attacker) {
     if (!target.alive) return;
     if (target.armor > 0) damage = Math.max(1, damage - target.armor);
-    if (attacker?.critChance > 0 && Math.random() < attacker.critChance) damage = Math.floor(damage * 1.5);
+    if (attacker?.critChance > 0 && Math.random() < attacker.critChance)
+        damage = Math.floor(damage * 1.5);
     target.torsoHP -= damage;
     if (target.torsoHP <= 0) killRobot(target, attacker);
     else {
@@ -366,8 +439,13 @@ function spawnEnemy() {
     const enemyType = ENEMY_TYPES[Math.floor(Math.random() * ENEMY_TYPES.length)];
     const hp = Math.floor(enemyType.hp * diff.enemyHPMul * (1 + wave * 0.1));
     const enemy = createRobotFromModule(scene, world, {
-        position: pos, color: enemyType.color, eyeColor: 0xff0000,
-        isEnemy: true, maxTorsoHP: hp, scale: 1.0, speedMultiplier: enemyType.speed / 2.2
+        position: pos,
+        color: enemyType.color,
+        eyeColor: 0xff0000,
+        isEnemy: true,
+        maxTorsoHP: hp,
+        scale: 1.0,
+        speedMultiplier: enemyType.speed / 2.2
     });
     enemy.enemyType = enemyType;
     enemy.savedWeapon = 'sword';
@@ -382,9 +460,15 @@ function spawnBoss(bossType) {
     const radius = SAFE_RADIUS + 10;
     const pos = [Math.cos(angle) * radius, 2, Math.sin(angle) * radius];
     const boss = createRobotFromModule(scene, world, {
-        position: pos, color: bossType.color, eyeColor: 0xff0000,
-        isEnemy: true, isBoss: true, bossType: bossType,
-        maxTorsoHP: bossType.hp, scale: bossType.scale, speedMultiplier: bossType.speed / 2.2
+        position: pos,
+        color: bossType.color,
+        eyeColor: 0xff0000,
+        isEnemy: true,
+        isBoss: true,
+        bossType: bossType,
+        maxTorsoHP: bossType.hp,
+        scale: bossType.scale,
+        speedMultiplier: bossType.speed / 2.2
     });
     boss.savedWeapon = 'sword';
     boss.weapon = 'sword';
@@ -418,21 +502,21 @@ function showRewardPanel() {
 
 function applyReward(reward) {
     switch (reward.type) {
-        case 'heal':
-            player.torsoHP = Math.min(player.maxTorsoHP, player.torsoHP + 2);
-            showBanner('+2 HP', 1000);
-            audio.reward();
-            break;
-        case 'ally':
-            window.spawnAlly();
-            break;
-        case 'xp':
-            addXP(50);
-            break;
+    case 'heal':
+        player.torsoHP = Math.min(player.maxTorsoHP, player.torsoHP + 2);
+        showBanner('+2 HP', 1000);
+        audio.reward();
+        break;
+    case 'ally':
+        window.spawnAlly();
+        break;
+    case 'xp':
+        addXP(50);
+        break;
     }
 }
 
-window.spawnAlly = function() {
+window.spawnAlly = function () {
     const angle = Math.random() * Math.PI * 2;
     const radius = 5;
     const pos = [
@@ -441,8 +525,12 @@ window.spawnAlly = function() {
         player.coreBody.position.z + Math.sin(angle) * radius
     ];
     const ally = createRobotFromModule(scene, world, {
-        position: pos, color: 0x44ff88, eyeColor: 0x00ffff,
-        isAlly: true, maxTorsoHP: 5 + level * 2, scale: 1.0
+        position: pos,
+        color: 0x44ff88,
+        eyeColor: 0x00ffff,
+        isAlly: true,
+        maxTorsoHP: 5 + level * 2,
+        scale: 1.0
     });
     ally.savedWeapon = 'sword';
     ally.weapon = 'sword';
@@ -455,7 +543,8 @@ function gameOver() {
     gameRunning = false;
     audio.stopMusic();
     const score = kills * 100 + wave * 500;
-    document.getElementById('finalStats').textContent = `Волна ${wave} · Убито ${kills} · Счёт ${score}`;
+    document.getElementById('finalStats').textContent =
+        `Волна ${wave} · Убито ${kills} · Счёт ${score}`;
     document.getElementById('gameover').style.display = 'flex';
 }
 
@@ -471,7 +560,7 @@ function disposeRobot(robot) {
 // Старт новой игры
 export function startGame(difficulty) {
     currentDifficultyKey = difficulty;
-    
+
     // Очистка предыдущей игры
     robots.forEach(r => {
         if (r.group) scene.remove(r.group);
@@ -552,10 +641,16 @@ export function updateHUD() {
 
     const hpEl = document.getElementById('hpVal');
     hpEl.textContent = `${player.torsoHP} / ${player.maxTorsoHP}`;
-    hpEl.className = player.torsoHP > player.maxTorsoHP * 0.66 ? 'hp-high' : 
-                     player.torsoHP > player.maxTorsoHP * 0.33 ? 'hp-mid' : 'hp-low';
+    hpEl.className =
+        player.torsoHP > player.maxTorsoHP * 0.66
+            ? 'hp-high'
+            : player.torsoHP > player.maxTorsoHP * 0.33
+                ? 'hp-mid'
+                : 'hp-low';
 
-    document.getElementById('weaponName').textContent = player.weapon ? player.weapon.toUpperCase() : '—';
+    document.getElementById('weaponName').textContent = player.weapon
+        ? player.weapon.toUpperCase()
+        : '—';
 
     const xpPercent = (xp / xpToNextLevel) * 100;
     document.getElementById('xpFill').style.width = `${xpPercent}%`;
@@ -603,7 +698,7 @@ function setupUIHandlers() {
     document.getElementById('pauseBtn').addEventListener('click', togglePause);
 
     // ESC для паузы
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', e => {
         if (e.key === 'Escape' && gameRunning) {
             togglePause();
         }
@@ -633,7 +728,7 @@ function setupUIHandlers() {
 function togglePause() {
     if (!gameRunning) return;
     paused = !paused;
-    
+
     const pauseOverlay = document.getElementById('pauseOverlay');
     if (paused) {
         pauseOverlay.classList.add('show');
@@ -647,12 +742,12 @@ function togglePause() {
 }
 
 // Экспорт для использования в других модулях
-window.repairPlayerLimbs = function() {
+window.repairPlayerLimbs = function () {
     // Заглушка - будет реализована
     return 0;
 };
 
-window.spawnAlly = function() {
+window.spawnAlly = function () {
     // Заглушка - будет реализована
 };
 
@@ -660,24 +755,24 @@ window.showBanner = showBanner;
 window.updateHUD = updateHUD;
 
 // Обработчики ввода
-window.addEventListener('keydown', (e) => {
+window.addEventListener('keydown', e => {
     keys[e.code] = true;
     if (e.code === 'KeyP' && gameRunning) togglePause();
 });
 
-window.addEventListener('keyup', (e) => {
+window.addEventListener('keyup', e => {
     keys[e.code] = false;
 });
 
-document.addEventListener('mousedown', (e) => {
+document.addEventListener('mousedown', e => {
     if (e.button === 0) keys['MouseLeft'] = true;
 });
 
-document.addEventListener('mouseup', (e) => {
+document.addEventListener('mouseup', e => {
     if (e.button === 0) keys['MouseLeft'] = false;
 });
 
-document.addEventListener('wheel', (e) => {
+document.addEventListener('wheel', e => {
     if (e.deltaY < 0) keys['WheelUp'] = true;
     else keys['WheelDown'] = true;
     setTimeout(() => {

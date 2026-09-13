@@ -40,7 +40,7 @@ export class SoundEngine {
         if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
     }
 
-    hit(f = 1800, dur = 0.10, vol = 0.5) {
+    hit(f = 1800, dur = 0.1, vol = 0.5) {
         if (!this.enabled || !this.ctx || !this._noiseBuffer) return;
         const t = this.ctx.currentTime;
         const s = this.ctx.createBufferSource();
@@ -78,7 +78,8 @@ export class SoundEngine {
 
     growl() {
         if (!this.enabled || !this.ctx) return;
-        const t = this.ctx.currentTime, dur = 1.1;
+        const t = this.ctx.currentTime,
+            dur = 1.1;
         const o = this.ctx.createOscillator();
         o.type = 'sawtooth';
         o.frequency.setValueAtTime(70, t);
@@ -109,8 +110,8 @@ export class SoundEngine {
     }
 
     bowRelease(p = 1) {
-        this.hit(500 + p * 400, 0.10, 0.30 + p * 0.20);
-        this.thud(240 - p * 60, 0.15, 0.20 + p * 0.15);
+        this.hit(500 + p * 400, 0.1, 0.3 + p * 0.2);
+        this.thud(240 - p * 60, 0.15, 0.2 + p * 0.15);
     }
 
     special() {

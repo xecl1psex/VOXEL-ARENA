@@ -1,0 +1,42 @@
+{
+  "name": "voxel-arena",
+  "version": "1.0.0",
+  "description": "3D voxel-style arena game with robots",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint . --ext .js",
+    "lint:fix": "eslint . --ext .js --fix",
+    "format": "prettier --write \"**/*.js\"",
+    "format:check": "prettier --check \"**/*.js\"",
+    "serve": "npx http-server -p 8000"
+  },
+  "keywords": [
+    "game",
+    "3d",
+    "threejs",
+    "cannon-es",
+    "voxel",
+    "arena"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cannon-es": "^0.20.0",
+    "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/user-event": "^14.6.7",
+    "eslint": "^8.56.0",
+    "jsdom": "^29.1.1",
+    "prettier": "^3.1.0",
+    "vite": "^5.0.0",
+    "vitest": "^4.1.11"
+  }
+}
