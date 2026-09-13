@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Voxel Arena — модульная версия</title>
+<link rel="stylesheet" href="css/style.css">
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/","cannon-es":"https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js"}}
+</script>
+</head>
+<body>
+<div id="aimCursor"></div>
+<div id="chargeBar"><div id="chargeFill"></div></div>
+<button id="upgradeBtn">🔼 ПОЛУЧИТЬ АПГРЕЙД</button>
+<div id="hud">
+<div><b>VOXEL ARENA</b></div>
+<div><b>WASD</b> · <b>Space</b> · <b>ЛКМ</b> (×2 = спец) · <b>1–4 / колесо</b> · <b>ESC</b> — пауза</div>
+<hr style="border-color:#334;margin:6px 0;">
+<div>Уровень: <b id="levelHud" class="lvl">1</b></div>
+<div>Волна: <b id="waveNum">—</b></div>
+<div>Врагов: <b id="enemyCount">—</b></div>
+<div>Убито: <b id="killCount">0</b></div>
+<div>Корпус: <b id="hpVal" class="hp-high">3 / 3</b></div>
+<div>Щит: <b id="shieldVal" class="shield">0</b></div>
+<div>Союзники: <b id="allyCount" class="ally">0</b></div>
+<div>Оружие: <b id="weaponName" class="weapon">—</b></div>
+<div id="xpBar"><div id="xpFill"></div></div>
+<div id="specialCd" class="ready"><div id="specialCdFill"></div><span class="cd-label" id="specialCdLabel">СПЕЦ ГОТОВ</span></div>
+<div id="weaponSlots"></div>
+<div id="passiveList"></div>
+</div>
+<button id="pauseBtn">⏸ ПАУЗА</button>
+<button id="soundToggle">🔊 ЗВУК</button>
+<div id="bossBar"><div class="name" id="bossName">БОСС</div><div class="outer"><div class="inner" id="bossHpInner"></div></div></div>
+<div id="banner"></div><div id="specialBanner"></div><div id="regenBanner"></div>
+<div id="pauseHint"><b>ESC</b> — пауза</div>
+
+<!-- Панели -->
+<div class="panel-overlay" id="levelPanel">
+<div class="panel-inner" style="max-width:620px;">
+<div class="panel-header"><div class="title">УРОВЕНЬ <span id="levelNum">2</span></div></div>
+<div class="panel-section"><h3>АПГРЕЙДЫ И ПАССИВКИ</h3><div id="levelChoices"></div></div>
+</div>
+</div>
+
+<div class="overlay" id="startMenu">
+<h1>VOXEL ARENA</h1>
+<div class="subtitle">ВЫЖИВИ КАК МОЖНО ДОЛЬШЕ</div>
+<div class="diff-buttons">
+<button data-diff="easy">ЛЕГКО</button>
+<button data-diff="normal">НОРМАЛЬНО</button>
+<button data-diff="hard">СЛОЖНО</button>
+</div>
+<button class="menu-btn secondary" id="customizeBtn" style="margin-bottom:10px;">⚙ НАСТРОЙКА РОБОТА</button>
+<div id="leaderboardBox"><h3>ЛИДЕРЫ</h3><ol id="lbList"></ol></div>
+</div>
+
+<div class="panel-overlay" id="betweenPanel">
+<div class="panel-inner">
+<div class="panel-header"><div class="title">НАГРАДА ЗА ВОЛНУ <span id="nextWaveNum">2</span></div></div>
+<div class="panel-section"><h3>ВЫБЕРИ ОДНУ НАГРАДУ</h3><div class="reward-grid" id="rewardGrid"></div></div>
+<button class="skip-btn" id="skipBtn">ПРОПУСТИТЬ</button>
+<button class="continue-btn" id="continueBtn" style="display:none;">ПРОДОЛЖИТЬ →</button>
+</div>
+</div>
+
+<div class="panel-overlay" id="customPanel">
+<div class="panel-inner">
+<div class="panel-header"><div class="title">НАСТРОЙКА РОБОТА</div></div>
+<div class="panel-section"><h3>КОРПУС</h3><div class="color-row" id="bodyColors"></div></div>
+<div class="panel-section"><h3>ВИЗОР</h3><div class="color-row" id="visorColors"></div></div>
+<div class="panel-section"><h3>НАПЛЕЧНИКИ</h3><div class="color-row" id="shoulderColors"></div></div>
+<div class="custom-buttons">
+<button class="menu-btn secondary" id="customBack">← НАЗАД</button>
+<button class="menu-btn secondary" id="customReset">СБРОС</button>
+</div>
+</div>
+</div>
+
+<div id="pauseOverlay">
+<div class="pause-inner">
+<h2>⏸ ПАУЗА</h2>
+<div class="pause-buttons">
+<button class="pause-btn" id="resumeBtn">▶ ПРОДОЛЖИТЬ</button>
+<button class="pause-btn secondary" id="settingsBtn">⚙ НАСТРОЙКИ</button>
+<button class="pause-btn danger" id="quitBtn">✖ ВЫЙТИ В МЕНЮ</button>
+</div>
+</div>
+</div>
+
+<div class="overlay" id="gameover">
+<div class="overlay-title">ИГРА ОКОНЧЕНА</div>
+<div class="sub" id="finalStats">Волна 5 · Убито 23 · Счёт 2300</div>
+<div class="go-buttons">
+<button id="retryBtn">↻ ЗАНОВО</button>
+<button class="secondary" id="menuBtn">☰ МЕНЮ</button>
+</div>
+</div>
+
+<script type="module">
+// Импорт модулей
+import { initGame } from './js/main.js';
+
+// Инициализация игры при загрузке
+window.addEventListener('load', () => {
+    initGame();
+});
+</script>
+</body>
+</html>
