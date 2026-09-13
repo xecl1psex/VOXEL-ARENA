@@ -3,6 +3,86 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 
+// Константы
+export const RS = 1.5;
+export const m3 = (x, y, z) => [x * RS, y * RS, z * RS];
+export const GROUP_GROUND = 1, GROUP_PLAYER = 2, GROUP_LIMB = 4;
+export const ARENA_SIZE = 160;
+export const SAFE_RADIUS = 18;
+export const CORPSE_LIFETIME = 8;
+export const SEVERED_LIFETIME = 6;
+
+// Сложности
+export const DIFFICULTIES = {
+    easy: { name: 'ЛЕГКО', playerHP: 5, enemyCountMul: 0.7, enemyHPMul: 0.8, regen: 2, scoreMul: 0.6 },
+    normal: { name: 'НОРМАЛЬНО', playerHP: 3, enemyCountMul: 1.0, enemyHPMul: 1.0, regen: 1, scoreMul: 1.0 },
+    hard: { name: 'СЛОЖНО', playerHP: 2, enemyCountMul: 1.4, enemyHPMul: 1.3, regen: 0, scoreMul: 1.6 },
+};
+
+// Кастомизация
+const CUSTOM_KEY = 'voxelArenaCustom_v2';
+const BODY_COLORS = [0x8899aa, 0x3a8ecc, 0x44cc88, 0xcc4444, 0x9955cc, 0xccaa44, 0x333333];
+const VISOR_COLORS = [0xff2244, 0xff0000, 0xff6600, 0xffdd44, 0x00ffff, 0x88ffbb, 0xff00ff];
+const SHOULDER_COLORS = [0x556677, 0x2a6a9c, 0x2a7a55, 0x7a2a55, 0x552a7a, 0x8a7a2a, 0x222222];
+export const customization = { bodyColor: BODY_COLORS[0], eyeColor: VISOR_COLORS[0], shoulderColor: SHOULDER_COLORS[0] };
+
+export function loadCustomization() {
+    try {
+        const s = JSON.parse(localStorage.getItem(CUSTOM_KEY));
+        if (s) {
+            if (s.bodyColor != null) customization.bodyColor = s.bodyColor;
+            if (s.eyeColor != null) customization.eyeColor = s.eyeColor;
+            if (s.shoulderColor != null) customization.shoulderColor = s.shoulderColor;
+        }
+    } catch (e) {}
+}
+
+export function saveCustomization() {
+    try {
+        localStorage.setItem(CUSTOM_KEY, JSON.stringify(customization));
+    } catch (e) {}
+}
+
+loadCustomization();
+
+// Пассивки
+export const PASSIVES = [
+    { id: 'maxHP', name: 'УСИЛЕННЫЙ КОРПУС', desc: '+2 к максимуму HP (и текущему)', icon: '❤', apply: (p) => { p.maxTorsoHP += 2; p.torsoHP = Math.min(p.maxTorsoHP, p.torsoHP + 2); } },
+    { id: 'damage', name: 'БОЕВОЙ ЧИП', desc: '+1 ко всему урону', icon: '⚔', apply: (p) => { p.bonusDamage += 1; } },
+    { id: 'speed', name: 'УСКОРЕННЫЙ ПРИВОД', desc: '+15% к скорости передвижения', icon: '⚡', apply: (p) => { p.speedBonus = (p.speedBonus || 0) + 0.15; } },
+    { id: 'swingSpeed', name: 'ГИРОСКОП', desc: '+15% к скорости замаха', icon: '🌀', apply: (p) => { p.swingSpeedBonus = (p.swingSpeedBonus || 0) + 0.15; } },
+];
+
+// Награды
+export const REWARDS = [
+    { type: 'heal', name: 'РЕМОНТ', desc: 'Восстановить 2 HP', icon: '🔧' },
+    { type: 'ally', name: 'СОЮЗНИК', desc: 'Призвать боевого робота', icon: '🤖' },
+    { type: 'xp', name: 'ОПЫТ', desc: '+1 уровень', icon: '✨' },
+];
+
+// Оружие
+export const WEAPONS = [
+    { id: 'sword', name: 'МЕЧ', icon: '🗡', hitDetection: 'swing', minChargeToFire: 0, damage: 2, swingDuration: 0.35, cooldown: 0.5, color: 0xffdd77 },
+    { id: 'axe', name: 'ТОПОР', icon: '🪓', hitDetection: 'swing', minChargeToFire: 0, damage: 3, swingDuration: 0.5, cooldown: 0.8, color: 0xff8844 },
+    { id: 'bow', name: 'ЛУК', icon: '🏹', hitDetection: 'projectile', minChargeToFire: 0.2, minSpeed: 18, maxSpeed: 32, minDamage: 1, maxDamage: 3, chargeTime: 0.8, cooldown: 0.4, color: 0x88ff66 },
+    { id: 'spear', name: 'КОПЬЁ', icon: '🔱', hitDetection: 'swing', minChargeToFire: 0, damage: 2, swingDuration: 0.4, cooldown: 0.6, color: 0x66ccff },
+];
+
+// Враги
+export const ENEMY_TYPES = [
+    { name: 'БАЗОВЫЙ', hp: 2, speed: 2.2, damage: 1, color: 0xcc4444 },
+    { name: 'БЫСТРЫЙ', hp: 1, speed: 3.4, damage: 1, color: 0xcc7744 },
+    { name: 'СИЛЬНЫЙ', hp: 4, speed: 1.6, damage: 2, color: 0x9955cc },
+    { name: 'ТАНК', hp: 6, speed: 1.2, damage: 2, color: 0xccaa44 },
+];
+
+// Боссы
+export const BOSSES = {
+    5: { name: 'БОСС-5', hp: 18, speed: 1.4, damage: 3, scale: 1.6, color: 0xff2244 },
+    10: { name: 'БОСС-10', hp: 35, speed: 1.2, damage: 4, scale: 2.0, color: 0xaa22ff },
+    15: { name: 'БОСС-15', hp: 60, speed: 1.0, damage: 5, scale: 2.4, color: 0xff6600 },
+};
+
 // Создание материалов для робота
 export function makeMaterials(baseColor, eyeColor) {
     const c = new THREE.Color(baseColor);
@@ -350,3 +430,4 @@ class SwingTrail {
         this.geometry.computeBoundingSphere();
     }
 }
+export { SwingTrail };
